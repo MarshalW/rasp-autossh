@@ -1,0 +1,85 @@
+---
+- hosts: pi[0]
+  tasks:
+    - name: "Set authorized key took from file"
+      authorized_key:
+        user: "{{local_server_user}}"
+        state: present
+        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+    - name: "Set apt mirror"
+      become: yes
+      shell: |
+        mv /etc/apt/sources.list /etc/apt/sources.list.bak
+        touch /etc/apt/sources.list
+        chmod +w /etc/apt/sources.list
+        echo 'deb http://mirrors.aliyun.com/raspbian/raspbian/ buster main contrib non-free rpi' | tee /etc/apt/sources.list > /dev/null
+    - name: "apt-get update"
+      become: true
+      become_method: sudo
+      # warn: false
+      shell: |
+        apt-get update
+    - name: "apt-get upgrade"
+      become: true
+      become_method: sudo
+      # warn: false
+      shell: |
+        apt-get upgrade -y
+
+    # 为了调试方便，屏蔽了标准做法
+    # - name: Update and upgrade apt packages
+    #   become: true
+    #   become_method: sudo
+    #   apt:
+    #     force_apt_get: yes
+    #     upgrade: yes
+    #     update_cache: yes
+    #     # cache_valid_time: 86400 #One day
+
+    - name: "Change timezone"
+      become: yes
+      shell: timedatectl set-timezone Asia/Shanghai
+    - name: Install autossh
+      become: true
+      become_method: sudo
+      apt:
+        name: autossh
+        state: present
+    - name: "generate autossh service systemd file"
+      become: yes
+      template:
+        src: autossh.service.j2
+        dest: /etc/systemd/system/autossh.service
+    - name: "Disable ssh password authentication"
+      become: yes
+      shell: sed -i "s/.*PasswordAuthentication.*/PasswordAuthentication no/g" /etc/ssh/sshd_config
+    - name: "generate ssh config"
+      template:
+        src: ssh-config.j2
+        dest: ~/.ssh/config
+    - name: "Generate user key"
+      register: keyResult
+      user:
+        name: "{{local_server_user}}"
+        generate_ssh_key: yes
+        ssh_key_file: .ssh/id_rsa
+    - name: "Change server hostname"
+      become: yes
+      script: ./change-hostname.sh {{hostname}}
+    - name: "Restart ssh service"
+      become: yes
+      shell: systemctl restart sshd.service
+
+- hosts: jump[0]
+  tasks:
+    - name: "Set authorized key took from file"
+      authorized_key:
+        user: "{{jump_server_user}}"
+        state: present
+        key: "{{ hostvars[groups['pi'][0]]['keyResult'].ssh_public_key }}"
+
+- hosts: pi[0]
+  tasks:
+    - name: start autossh service
+      become: yes
+      systemd: state=started name=autossh daemon_reload=yes

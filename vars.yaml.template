@@ -1,0 +1,10 @@
+hostname: YOUR_RASPBERRY_NEW_HOSTNAME
+check_port: AUTOSSH_CHECK_PORT
+jump_server: JUMP_SERVER_NAME
+jump_server_hostname: JUMP_SERVER_IP_OR_HOSTNAME
+jump_server_ssh_port: JUMP_SERVER_SSH_PORT
+jump_server_user: JUMP_SERVER_USER
+jump_port: JUMP_PORT
+local_ssh_port: 22
+local_server_user: pi
+local_server: YOUR_RASPBERRY_NEW_HOSTNAM{{.local}}

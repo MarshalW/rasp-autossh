@@ -1,0 +1,5 @@
+[pi]
+raspberrypi.local      ansible_user=pi ansible_password=raspberry
+
+[jump]
+j  ansible_user=YOUR_JUMP_SERVER_SSH_USER_NAME

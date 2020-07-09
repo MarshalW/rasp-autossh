@@ -1,0 +1,13 @@
+[Unit]
+Description=AutoSSH service for a reverse tunnel from some.example.com to localhost
+After=network-online.target
+
+[Service]
+User={{local_server_user}}
+Environment="AUTOSSH_GATETIME=0"
+ExecStart=/usr/bin/autossh -M {{check_port}} -N -T -q -o ServerAliveInterval=30 -o ServerAliveCountMax=10 -R {{jump_port}}:localhost:{{local_ssh_port}} {{jump_server}}
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target
