@@ -82,4 +82,4 @@
   tasks:
     - name: start autossh service
       become: yes
-      systemd: state=started name=autossh daemon_reload=yes
+      systemd: state=started name=autossh daemon_reload=yes enabled=yes
