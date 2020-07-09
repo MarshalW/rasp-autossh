@@ -2,6 +2,8 @@
 
 用于树莓派自动安装 autossh 服务的脚本
 
+![](raspberry_zero.png)
+
 ## 准备
 
 - 树莓派硬件
